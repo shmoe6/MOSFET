@@ -3,6 +3,8 @@ package com.musicallyanna.mosfet.command;
 import com.musicallyanna.mosfet.command.commands.CheckOpenCommand;
 import com.musicallyanna.mosfet.command.commands.CommandBase;
 import com.musicallyanna.mosfet.command.commands.TestCommand;
+import com.musicallyanna.mosfet.command.commands.scheduling.ScheduleEventCommand;
+import com.musicallyanna.mosfet.command.commands.scheduling.ViewScheduleCommand;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -17,11 +19,6 @@ import java.util.*;
  * @author Anna Bontempo
  */
 public class CommandManager extends ListenerAdapter {
-
-//    /**
-//     * The current package of {@code CommandManager.java}.
-//     */
-//    private final String currentPkg = "com.musicallyanna.mosfet.command";
 
     /**
      * {@code java.util.HashMap} that stores the name of each command as the key with an
@@ -38,30 +35,9 @@ public class CommandManager extends ListenerAdapter {
 
         // manually add each command to the command list
         this.commandList.put("checkopen", new CheckOpenCommand());
+        this.commandList.put("schedule", new ScheduleEventCommand());
         this.commandList.put("test", new TestCommand());
-
-    // reflection attempt to auto load command classes. coming soon...
-//        @NotNull
-//        final Package[] currentSubPkgs = this.getClass().getPackage().getPackages();
-//
-//        Package commandsPkg = null;
-//        boolean foundPkg = false;
-//
-//        for (int i = 0; !foundPkg && i < currentSubPkgs.length; i++) {
-//
-//            if (currentSubPkgs[i].getName().equals(this.currentPkg + ".commands")) {
-//
-//                commandsPkg = currentSubPkgs[i];
-//                foundPkg = true;
-//            }
-//        }
-//
-//        assert commandsPkg != null: "ERROR: com.musicallyanna.mosfet.command.commands not found.";
-//        Class<?>[] classes = commandsPkg.getClass().getClasses();
-//
-//        for (Class<?> c : classes) {
-//            System.out.println(c);
-//        }
+        this.commandList.put("viewschedule", new ViewScheduleCommand());
     }
 
     /**
@@ -90,12 +66,18 @@ public class CommandManager extends ListenerAdapter {
     @Override
     public void onGuildReady(@NotNull GuildReadyEvent event) {
 
-        // declare and initalize list of command data for registration
+        // declare and initialize list of command data for registration
         List<CommandData> commandData = new ArrayList<CommandData>();
 
         // loop through commands in the command list, adding each one's name and description to the command data
         for (HashMap.Entry<String, CommandBase> entry : this.commandList.entrySet()) {
-            commandData.add(Commands.slash(entry.getKey(), entry.getValue().getDescription()));
+
+            if (entry.getValue().getOptions() == null) {
+                commandData.add(Commands.slash(entry.getKey(), entry.getValue().getDescription()));
+
+            } else {
+                commandData.add(Commands.slash(entry.getKey(), entry.getValue().getDescription()).addOptions(entry.getValue().getOptions()));
+            }
         }
 
         // send data to api to update/register the commands

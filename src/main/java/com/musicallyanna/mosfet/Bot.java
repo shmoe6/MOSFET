@@ -1,6 +1,8 @@
 package com.musicallyanna.mosfet;
 
+import com.musicallyanna.mosfet.calendar.CalendarHandler;
 import com.musicallyanna.mosfet.command.CommandManager;
+import com.musicallyanna.mosfet.command.commands.scheduling.ModalHandler;
 import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -29,6 +31,8 @@ public class Bot {
      */
     private final ShardManager shardManager;
 
+    public static final CalendarHandler calendarHandler = new CalendarHandler();
+
     /**
      * No argument constructor. Performs the initial setup for the bot by disabling cache, setting status/activity,
      * and building it.
@@ -45,7 +49,9 @@ public class Bot {
                 .setActivity(Activity.watching("ElectroBOOM")) // set activity status
                 .build(); // build the bot
 
-        this.shardManager.addEventListener(new CommandManager()); // register listeners
+        // register listeners
+        this.shardManager.addEventListener(new CommandManager());
+        this.shardManager.addEventListener(new ModalHandler());
     }
 
     /**
@@ -57,11 +63,15 @@ public class Bot {
     }
 
     /**
-     * Returns an instance of the bot config.
-     * @return the {@code net.dv8tion.jda.api.sharding.ShardManager} that is the current  for the bot.
+     * Returns the current shard manager and JDA for the bot.
+     * @return the {@code net.dv8tion.jda.api.sharding.ShardManager} that is the current shard manager for the bot.
      */
     public ShardManager getShardManager() {
         return this.shardManager;
+    }
+
+    public CalendarHandler getCalendarHandler() {
+        return this.calendarHandler;
     }
 
     public static void main(String[] args) {

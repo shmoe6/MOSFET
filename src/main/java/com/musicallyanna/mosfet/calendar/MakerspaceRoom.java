@@ -27,4 +27,20 @@ public enum MakerspaceRoom {
         // combine the two formatted strings, separated by a space
         return s[0] + " " + s[1];
     }
+
+    /**
+     * Converts a {@code String} value to a {@code MakerspaceRoom} value.
+     * @param s the value to convert.
+     * @return the {@code MakerspaceRoom} corresponding to the provided {@code String}.
+     */
+    public static MakerspaceRoom stringToEnum(String s) {
+
+        return switch (s) {
+            case "IDEATION_SPACE" -> IDEATION_SPACE;
+            case "ELECTRONICS_LAB" -> ELECTRONICS_LAB;
+            case "WOOD_SHOP" -> WOOD_SHOP;
+            case "METAL_SHOP" -> METAL_SHOP;
+            default -> IDEATION_SPACE;
+        };
+    }
 }
