@@ -49,7 +49,7 @@ public class ScheduleEventCommand extends CommandBase {
         // setup command options
         this.options = new ArrayList<OptionData>();
 
-        // create option to choose different {@MakerspaceRoom}'s
+        // create option to choose different {@code MakerspaceRoom}'s
         this.options.add(new OptionData(OptionType.STRING, "room", "the room to schedule the event in")
                 .addChoice("Ideation Space", MakerspaceRoom.IDEATION_SPACE.name())
                 .addChoice("Electronics Lab", MakerspaceRoom.ELECTRONICS_LAB.name())
@@ -109,9 +109,6 @@ public class ScheduleEventCommand extends CommandBase {
 
         // pass the request off to {@code ModalHandler.java}. will be brought back here for final execution
         event.replyModal(ui).queue();
-
-        // clear cache upon success
-        roomCache.remove(event.getUser().getIdLong());
     }
 
     /**

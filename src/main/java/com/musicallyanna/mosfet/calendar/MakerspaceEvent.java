@@ -128,6 +128,7 @@ public class MakerspaceEvent {
             }
         }
 
+
         // seconds variable to pass into the date creation function
         final int seconds = 0;
 
@@ -163,7 +164,8 @@ public class MakerspaceEvent {
         LocalDateTime endTimeIn = eventIn.getEndTime();
 
         // check to see if the provided event would cause scheduling conflicts with this one
-        return (this.startTime.isBefore(endTimeIn) || this.endTime.isAfter((startTimeIn)));
+        // TODO: fix this fucking logic holy shit...
+        return !(endTimeIn.isAfter(startTime) && startTimeIn.isBefore(endTime));
     }
 
     /**

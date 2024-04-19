@@ -55,10 +55,15 @@ public class ModalHandler extends ListenerAdapter {
                 // notify user of success
                 event.reply("Event Scheduled!").queue();
             } else {
-
                 // notify user of failure
                 event.reply("An error has occurred. Please check the information entered and try again.").queue();
             }
+
+            // clear cache upon success
+            roomCache.remove(event.getUser().getIdLong());
+
+            // block use of event to prevent further collection of data
+            event = null;
         }
     }
 }

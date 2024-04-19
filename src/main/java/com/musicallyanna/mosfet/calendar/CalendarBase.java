@@ -29,7 +29,7 @@ public class CalendarBase {
         this.room = room;
 
         // create the {@code java.util.PriorityQueue} to store the events in chronological order
-        this.events = new PriorityQueue<MakerspaceEvent>(new Comparator<MakerspaceEvent>() {
+        this.events = new PriorityQueue<MakerspaceEvent>(50, new Comparator<MakerspaceEvent>() {
 
             /**
              * Compares the start times of each {@code MakerspaceEvent}.
@@ -64,7 +64,7 @@ public class CalendarBase {
             boolean allClearToSchedule = true;
 
             // temporary queue to store each event as it is removed from the events queue
-            Queue<MakerspaceEvent> temp = new PriorityQueue<MakerspaceEvent>(this.events.size() + 1 );
+            Queue<MakerspaceEvent> temp = new PriorityQueue<MakerspaceEvent>(this.events.size() + 1);
 
             // loop through the events queue
             for (int i = 0; i < this.events.size(); i++) {

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 /**
  * Command to view current schedule of a {@code MakerspaceRoom}.
+ * @author Anna Bontempo
  */
 public class ViewScheduleCommand extends CommandBase {
 

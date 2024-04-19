@@ -71,7 +71,7 @@ public class Bot {
     }
 
     public CalendarHandler getCalendarHandler() {
-        return this.calendarHandler;
+        return calendarHandler;
     }
 
     public static void main(String[] args) {
