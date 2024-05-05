@@ -1,9 +1,8 @@
 package com.musicallyanna.mosfet.command.commands.scheduling;
 
 import com.musicallyanna.mosfet.Bot;
-import com.musicallyanna.mosfet.calendar.MakerspaceEvent;
-import com.musicallyanna.mosfet.calendar.MakerspaceRoom;
 import com.musicallyanna.mosfet.command.commands.CommandBase;
+import com.musicallyanna.mosfet.time.MakerspaceEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
@@ -22,16 +21,20 @@ public class ViewScheduleCommand extends CommandBase {
     @Override
     public void execute(SlashCommandInteractionEvent event) {
 
+        // refresh events in the calendar
+        final String eventDataFilePath = Bot.config.get("EVENT_DATA_PATH");
+        Bot.makerspaceCalendar.loadEventData(eventDataFilePath);
+
         // get list of events from correct calendar
-        ArrayList<MakerspaceEvent> events = Bot.calendarHandler.getEvents(MakerspaceRoom.IDEATION_SPACE);
+        ArrayList<MakerspaceEvent> events = Bot.makerspaceCalendar.getEvents();
 
         // setup embed
         EmbedBuilder eventDisplay = new EmbedBuilder().setTitle("Current Schedule for " + "Ideation Space");
 
         // add each {@code MakerspaceEvent} to the embed
         for (MakerspaceEvent e : events) {
-            eventDisplay.addField(e.getName(), "(" + e.getGroup() + ")", false)
-                    .addField("More Information", "Start: " + e.getStartTime().toString() + "\n" + e.getEndTime().toString(), false)
+            eventDisplay.addField(e.getEventTitle(), "(" + e.getOrganization() + ")", false)
+                    .addField("More Information", "Start: " + e.getStart().toString() + "\n" + e.getEnd().toString(), false)
                     .addBlankField(false);
         }
 

@@ -1,8 +1,8 @@
 package com.musicallyanna.mosfet;
 
-import com.musicallyanna.mosfet.calendar.CalendarHandler;
 import com.musicallyanna.mosfet.command.CommandManager;
-import com.musicallyanna.mosfet.command.commands.scheduling.ModalHandler;
+import com.musicallyanna.mosfet.command.ModalHandler;
+import com.musicallyanna.mosfet.time.MakerspaceCalendar;
 import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -24,14 +24,17 @@ public class Bot {
     /**
      * Configuration for the bot.
      */
-    private final Dotenv config;
+    public static Dotenv config;
 
     /**
      * The {@code net.dv8tion.jda.api.sharding.ShardManager} used to handle the bot.
      */
     private final ShardManager shardManager;
 
-    public static final CalendarHandler calendarHandler = new CalendarHandler();
+    /**
+     * The {@code MakerspaceCalendar} that holds the events currently scheduled for the makerspace.
+     */
+    public static MakerspaceCalendar makerspaceCalendar;
 
     /**
      * No argument constructor. Performs the initial setup for the bot by disabling cache, setting status/activity,
@@ -41,6 +44,7 @@ public class Bot {
     public Bot() throws LoginException {
         config = Dotenv.configure().load(); // load config
         final String token = config.get("TOKEN"); // get the bot token to pass into {@code this.shardManager}
+        final String eventDataFilePath = config.get("EVENT_DATA_PATH");
 
         this.shardManager = DefaultShardManagerBuilder.createLight(token) // create a "light" instance of JDA (look on docs)
                 .disableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE) // disable not needed parts of the cache
@@ -48,6 +52,9 @@ public class Bot {
                 .setStatus(OnlineStatus.ONLINE) // set online (green circle) status for the bot
                 .setActivity(Activity.watching("ElectroBOOM")) // set activity status
                 .build(); // build the bot
+
+        // set up the calendar by loading in event data
+        makerspaceCalendar = new MakerspaceCalendar(eventDataFilePath);
 
         // register listeners
         this.shardManager.addEventListener(new CommandManager());
@@ -70,17 +77,24 @@ public class Bot {
         return this.shardManager;
     }
 
-    public CalendarHandler getCalendarHandler() {
-        return calendarHandler;
-    }
-
     public static void main(String[] args) {
+
+        final Bot bot;
+
         try {
             // create bot
-            Bot bot = new Bot();
+            bot = new Bot();
         } catch (LoginException le) {
             // handle exception with Discord login
-            le.printStackTrace();
+            throw new RuntimeException(le);
         }
+
+        // on shutdown, serialize event data to avoid loss
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            final String eventDataFilePath = bot.getConfig().get("EVENT_DATA_PATH");
+
+            System.out.println("Attempting to serialize event data...");
+            makerspaceCalendar.storeEventData(eventDataFilePath);
+        }));
     }
 }

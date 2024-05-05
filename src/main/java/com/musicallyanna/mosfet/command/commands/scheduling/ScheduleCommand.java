@@ -1,11 +1,7 @@
 package com.musicallyanna.mosfet.command.commands.scheduling;
 
-import com.musicallyanna.mosfet.Bot;
-import com.musicallyanna.mosfet.calendar.MakerspaceEvent;
-import com.musicallyanna.mosfet.calendar.MakerspaceRoom;
 import com.musicallyanna.mosfet.command.commands.CommandBase;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
@@ -13,13 +9,12 @@ import net.dv8tion.jda.api.interactions.modals.Modal;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
 
 /**
  * Command to schedule a {@code MakerspaceEvent} in the calendar.
  * @author Anna Bontempo
  */
-public class ScheduleEventCommand extends CommandBase {
+public class ScheduleCommand extends CommandBase {
 
     /**
      * Collection to hold various command {@code OptionData}.
@@ -44,18 +39,10 @@ public class ScheduleEventCommand extends CommandBase {
     /**
      * No argument contructor.
      */
-    public ScheduleEventCommand() {
+    public ScheduleCommand() {
 
         // setup command options
         this.options = new ArrayList<OptionData>();
-
-        // create option to choose different {@code MakerspaceRoom}'s
-        this.options.add(new OptionData(OptionType.STRING, "room", "the room to schedule the event in")
-                .addChoice("Ideation Space", MakerspaceRoom.IDEATION_SPACE.name())
-                .addChoice("Electronics Lab", MakerspaceRoom.ELECTRONICS_LAB.name())
-                .addChoice("Woodshop", MakerspaceRoom.WOOD_SHOP.name())
-                .addChoice("Metalshop", MakerspaceRoom.METAL_SHOP.name())
-                .setRequired(true));
     }
 
     /**
@@ -104,19 +91,8 @@ public class ScheduleEventCommand extends CommandBase {
                 .addActionRow(endTime)
                 .build();
 
-        // query the room cache to get user's room selection
-        roomCache.put(event.getUser().getIdLong(), Objects.requireNonNull(event.getOption("room")).getName());
-
         // pass the request off to {@code ModalHandler.java}. will be brought back here for final execution
         event.replyModal(ui).queue();
-    }
-
-    /**
-     * Forwards the scheduling request to {@code Bot.calendarHandler}.
-     * @param event the event to be scheduled.
-     */
-    public static void requestSchedule(MakerspaceEvent event) {
-        Bot.calendarHandler.schedule(event);
     }
 
     /**

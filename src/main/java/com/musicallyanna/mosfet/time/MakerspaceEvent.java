@@ -1,47 +1,23 @@
-package com.musicallyanna.mosfet.calendar;
+package com.musicallyanna.mosfet.time;
 
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.Month;
 
 /**
- * Class representing an event to take place in the makerspace.
+ * Class holding the data for an event in the Makerspace.
  * @author Anna Bontempo
  */
-public class MakerspaceEvent {
+public class MakerspaceEvent implements Serializable {
 
-    /**
-     * The {@code MakerspaceRoom} the the event is being held in.
-     */
-    private MakerspaceRoom room;
-
-    /**
-     * The organizer for the event.
-     */
+    private String eventTitle;
     private String organizer;
-
-    /**
-     * The group who the event is for.
-     */
-    private String group;
-
-    /**
-     * The name of the event.
-     */
-    private String name;
-
-    /**
-     * The start time of the event.
-     */
-    private LocalDateTime startTime;
-
-    /**
-     * The start time of the event.
-     */
-    private LocalDateTime endTime;
+    private String organization;
+    private final LocalDateTime start;
+    private final LocalDateTime end;
 
     /**
      * Creates an event with input provided through the {@code ScheduleEventCommand}'s modal menu.
-     * @param roomIn the {@code MakerspaceRoom} that the event will be held in.
      * @param organizerIn the name of the event organizer.
      * @param groupIn the name of the group/organization that is holding the event.
      * @param nameIn the name of the event.
@@ -49,13 +25,12 @@ public class MakerspaceEvent {
      * @param startTimeIn the time that the event will start.
      * @param endTimeIn the time that the event will end.
      */
-    public MakerspaceEvent(MakerspaceRoom roomIn, String organizerIn, String groupIn, String nameIn, String dateIn, String startTimeIn, String endTimeIn) {
+    public MakerspaceEvent(String organizerIn, String groupIn, String nameIn, String dateIn, String startTimeIn, String endTimeIn) {
 
         // initialize instance variables
-        this.room = roomIn;
         this.organizer = organizerIn;
-        this.group = groupIn;
-        this.name = nameIn;
+        this.organization = groupIn;
+        this.eventTitle = nameIn;
 
         // combine all the date strings into one, splitting them into chunks by whitespace, :, or /.
         String[] fullDateStr = (dateIn + " " + startTimeIn + " " + endTimeIn).split("[\\s:/]");
@@ -80,13 +55,12 @@ public class MakerspaceEvent {
             eventStart = assembleDate(Integer.parseInt(year), month, Integer.parseInt(day), Integer.parseInt(startHour), Integer.parseInt(startMinute), startTimeOfDay);            eventStart = assembleDate(Integer.parseInt(year), month, Integer.parseInt(day), Integer.parseInt(startHour), Integer.parseInt(startMinute), startTimeOfDay);
             eventEnd = assembleDate(Integer.parseInt(year), month, Integer.parseInt(day), Integer.parseInt(endHour), Integer.parseInt(endMinute), endTimeOfDay);
         } catch (NumberFormatException nfe) {
-            // PLEASE CHANGE THIS FOR THE LOVE OF GOD!!!!!!!!!!!!!!!!
             throw new RuntimeException(nfe);
         }
 
         // store the start and end times for the event
-        this.startTime = eventStart;
-        this.endTime = eventEnd;
+        this.start = eventStart;
+        this.end = eventEnd;
     }
 
     /**
@@ -128,7 +102,6 @@ public class MakerspaceEvent {
             }
         }
 
-
         // seconds variable to pass into the date creation function
         final int seconds = 0;
 
@@ -137,74 +110,96 @@ public class MakerspaceEvent {
     }
 
     /**
-     * Returns the current room for the event.
-     * @return the {@code MakerspaceRoom} that the event is located in.
+     * Constructor to create an event from just a start and end time. This should be used for testing only.
+     * @param t1 the {@code LocalDateTime} that the event starts at
+     * @param t2 the {@code LocalDateTime} that the event ends at
      */
-    public MakerspaceRoom getRoom() {
-        return this.room;
+    public MakerspaceEvent(LocalDateTime t1, LocalDateTime t2) {
+        this.start = t1;
+        this.end = t2;
     }
 
     /**
-     * Formats {@code this.room} into a printable {@code String} format.
-     * @return a {@code String} in capitalized, spaced out format representing the value of {@code this.room}
+     * Reports the earliest of the two provided times.
+     * @param t1 the first {@code LocalDateTime to compare}
+     * @param t2 the second {@code LocalDateTime to compare}
+     * @return the time that comes first chronologically.
      */
-    public String getRoomString() {
-        return MakerspaceRoom.toFormattedString(this.room);
+    public LocalDateTime minTime(LocalDateTime t1, LocalDateTime t2) {
+
+        // initially set first time to the first one provided
+        LocalDateTime firstTime = t1;
+
+        // set first time to the second parameter only if it comes before the first parameter
+        if (t2.isBefore(t1)) {
+            firstTime = t2;
+        }
+
+        // return earliest time
+        return firstTime;
     }
 
     /**
-     * Reports whether another event's scheduling will cause conflicts in the calendar.
-     * @param eventIn the {@code MakerspaceEvent} to compare against this one.
-     * @return {@code boolean} indicating whether {@code this} and {@code eventIn} will overlap in the calendar.
+     * Reports the latest of the two provided times.
+     * @param t1 the first {@code LocalDateTime to compare}
+     * @param t2 the second {@code LocalDateTime to compare}
+     * @return the time that comes last chronologically.
      */
-    public boolean hasOverlap(MakerspaceEvent eventIn) {
+    public LocalDateTime maxTime(LocalDateTime t1, LocalDateTime t2) {
 
-        // get start and end time of other event
-        LocalDateTime startTimeIn = eventIn.getStartTime();
-        LocalDateTime endTimeIn = eventIn.getEndTime();
+        // initially set last time to the first one provided
+        LocalDateTime lastTime = t1;
 
-        // check to see if the provided event would cause scheduling conflicts with this one
-        // TODO: fix this fucking logic holy shit...
-        return !(endTimeIn.isAfter(startTime) && startTimeIn.isBefore(endTime));
+        // set last time to the second parameter only if it comes before the first parameter
+        if (t2.isAfter(t1)) {
+            lastTime = t2;
+        }
+
+        // return latest time
+        return lastTime;
     }
 
     /**
-     * Reports the event's organizer.
-     * @return {@code String} containing the name of the organizer of {@code this}.
+     * Reports whether two events in the Makerspace overlap.
+     * @param e the event to check for overlap with
+     * @return whether {@code this} and the provided event's times overlap
      */
-    public String getOrganizer() {
-        return this.organizer;
+    public boolean hasOverlap(MakerspaceEvent e) {
+
+        // subtract the min of the ends of the ranges from the max of the beginning
+        // if result <= 0, there is overlap. the following code does this with the LocalDateTime methods
+        return !maxTime(this.end, e.end).isAfter(minTime(this.start, e.start));
     }
 
     /**
-     * Reports the event's name.
-     * @return {@code String} containing the name of {@code this}.
+     * Reports the start time of the event corresponding to {@code this}.
+     * @return {@code LocalDateTime} containing the start time of the event.
      */
-    public String getName() {
-        return this.name;
+    public LocalDateTime getStart() {
+        return this.start;
     }
 
     /**
-     * Reports the group hosting the event.
-     * @return {@code String} containing the group that is hosting {@code this}.
+     * Reports the end time of the event corresponding to {@code this}.
+     * @return {@code LocalDateTime} containing the end time of the event.
      */
-    public String getGroup() {
-        return this.group;
+    public LocalDateTime getEnd() {
+        return this.end;
     }
 
     /**
-     * Reports the event's starting time.
-     * @return {@code LocalDateTime} representing the start time of the event corresponding to {@code this}.
+     * Reports the title of the event corresponding to {@code this}.
+     * @return {@code String} containing the name of the event.
      */
-    public LocalDateTime getStartTime() {
-        return this.startTime;
+    public String getEventTitle() {
+        return eventTitle;
     }
 
     /**
-     * Reports the event's ending time.
-     * @return {@code LocalDateTime} representing the end time of the event corresponding to {@code this}.
+     * Reports the title of the organization planning the event corresponding to {@code this}.
+     * @return {@code String} containing the organization planning the event.
      */
-    public LocalDateTime getEndTime() {
-        return this.endTime;
+    public String getOrganization() {
+        return organization;
     }
 }

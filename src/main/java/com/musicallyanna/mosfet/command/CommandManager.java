@@ -1,9 +1,8 @@
 package com.musicallyanna.mosfet.command;
 
-import com.musicallyanna.mosfet.command.commands.CheckOpenCommand;
-import com.musicallyanna.mosfet.command.commands.CommandBase;
-import com.musicallyanna.mosfet.command.commands.TestCommand;
-import com.musicallyanna.mosfet.command.commands.scheduling.ScheduleEventCommand;
+import com.musicallyanna.mosfet.command.commands.*;
+import com.musicallyanna.mosfet.command.commands.control.ShutdownCommand;
+import com.musicallyanna.mosfet.command.commands.scheduling.ScheduleCommand;
 import com.musicallyanna.mosfet.command.commands.scheduling.ViewScheduleCommand;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -31,11 +30,13 @@ public class CommandManager extends ListenerAdapter {
      */
     public CommandManager() {
 
-        this.commandList = new HashMap<String, CommandBase>(); // initialize command list
+        // initialize command list
+        this.commandList = new HashMap<String, CommandBase>();
 
-        // manually add each command to the command list
+        // manually add each command to the command list.
         this.commandList.put("checkopen", new CheckOpenCommand());
-        this.commandList.put("schedule", new ScheduleEventCommand());
+        this.commandList.put("schedule", new ScheduleCommand());
+        this.commandList.put("shutdown", new ShutdownCommand());
         this.commandList.put("test", new TestCommand());
         this.commandList.put("viewschedule", new ViewScheduleCommand());
     }
